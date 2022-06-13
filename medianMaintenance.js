@@ -6,8 +6,8 @@
 		Stays in linear time.
 		
 		Uses 2 heaps: a MinHeap and a MaxHeap. At all times the median is either the max of the MaxHeap or the min of the MinHeap.
-			-If i is even, both are medians. If i is odd, then lies on side whichever heap has more elements.
-			-If one heap has more than 1 than other, extract from larger side and add it to other to rebalance.
+			-If i is even, both are medians. If i is odd, then median is on side of heap with more elements.
+			-If one heap size greater than other by > 1, extract from larger side and add it to other to re-balance.
 		
 		
 		MaxHeap			     MinHeap		Final Median -> 7 or 8 
@@ -33,6 +33,7 @@ class MedianMaintenance {
 		this.minHeap = new MinHeap();			
 		this.maxHeap = new MaxHeap();			
 		this.median = null;
+		this.sum = 0;
 	}
 	
 	//add the incoming number, make sure it arrives at correct heap 
@@ -74,47 +75,37 @@ class MedianMaintenance {
 
 }
 
-//Take input file and output an array of numbers
+//Take input file and perform median maintenance after each line parsed
 const parseFile = async (file) => {
 
-	const lines = (await util.promisify(fs.readFile)(file)).toString().split('\r\n');
-	const nums = [];
+	const medianMaintenance = new MedianMaintenance();
+	const nums = (await util.promisify(fs.readFile)(file)).toString().split('\r\n');
+	const startTime = performance.now();
 	
 	//each line is a single number
-	lines.map(num => {
+	nums.map(num => {
 		if (!num) { return null; }
-		nums.push(Number(num));
+		medianMaintenance.insert(Number(num));
+		medianMaintenance.sum += medianMaintenance.median;
 	});
-
-	return nums;
+	
+	const endTime = performance.now();
+	
+	console.log(`Median Maintenance took ${endTime - startTime} milliseconds`);   // ~23.84  milliseconds
+	
+	return medianMaintenance;
 }; 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //Driver
 
-const medianMaintenance = new MedianMaintenance();
-//const nums2 = [6,3,1,9,2,4,10,8,5,7];
-
 console.log("Beginning MedianMaintenance...");
 
-parseFile('./Median.txt').then((nums) => {
-	
-	let sum = 0;
-	const startTime = performance.now();
-	
-	for (let num of nums){
-		medianMaintenance.insert(num);
-		sum += medianMaintenance.median;
-	}
+parseFile('./Median.txt').then((medianMaintenance) => {
 
-	const endTime = performance.now();
-	
-	console.log("Final Median: " + medianMaintenance.median);
-	console.log("Sum: " + sum);
-	console.log("Sum modulo 1000 : " + sum % 10000);
-	
-	console.log(`MedianMaintenance took ${endTime - startTime} milliseconds`);   // ~26.84  milliseconds
+	console.log("Sum: " + medianMaintenance.sum);
+	console.log("Sum modulo 1000 : " + medianMaintenance.sum % 10000);
 	
 });
 
